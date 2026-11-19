@@ -75,3 +75,5 @@ jobs:
           path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 30
+
+# Release signing configuration is stored in GitHub Actions secrets.
