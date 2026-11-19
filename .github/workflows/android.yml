@@ -16,6 +16,10 @@ jobs:
     env:
       ANDROID_HOME: /usr/local/lib/android/sdk
       ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+      RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+      RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+      RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+      RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -44,20 +48,15 @@ jobs:
         run: gradle --no-daemon assembleDebug
 
       - name: Prepare release signing key
-        if: ${{ secrets.RELEASE_KEYSTORE_BASE64 != '' }}
-        env:
-          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+        if: env.RELEASE_KEYSTORE_BASE64 != ''
         run: |
           mkdir -p app/keystore
           echo "$RELEASE_KEYSTORE_BASE64" | base64 --decode > app/keystore/release.jks
 
       - name: Build signed release APK
-        if: ${{ secrets.RELEASE_KEYSTORE_BASE64 != '' && secrets.RELEASE_KEY_ALIAS != '' && secrets.RELEASE_KEY_PASSWORD != '' && secrets.RELEASE_STORE_PASSWORD != '' }}
+        if: env.RELEASE_KEYSTORE_BASE64 != '' && env.RELEASE_KEY_ALIAS != '' && env.RELEASE_KEY_PASSWORD != '' && env.RELEASE_STORE_PASSWORD != ''
         env:
           RELEASE_KEYSTORE_PATH: keystore/release.jks
-          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
-          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
-          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
         run: gradle --no-daemon assembleRelease
 
       - name: Upload debug APK
@@ -69,7 +68,7 @@ jobs:
           retention-days: 14
 
       - name: Upload signed release APK
-        if: ${{ secrets.RELEASE_KEYSTORE_BASE64 != '' && secrets.RELEASE_KEY_ALIAS != '' && secrets.RELEASE_KEY_PASSWORD != '' && secrets.RELEASE_STORE_PASSWORD != '' }}
+        if: env.RELEASE_KEYSTORE_BASE64 != '' && env.RELEASE_KEY_ALIAS != '' && env.RELEASE_KEY_PASSWORD != '' && env.RELEASE_STORE_PASSWORD != ''
         uses: actions/upload-artifact@v4
         with:
           name: OTO-SASE-PRO-RELEASE-APK
