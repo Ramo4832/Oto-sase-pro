@@ -1,5 +1,11 @@
 plugins { id 'com.android.application' }
 
+def releaseStoreFile = System.getenv("RELEASE_KEYSTORE_PATH")
+def releaseKeyAlias = System.getenv("RELEASE_KEY_ALIAS")
+def releaseKeyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+def releaseStorePassword = System.getenv("RELEASE_STORE_PASSWORD")
+def hasReleaseSigning = releaseStoreFile && releaseKeyAlias && releaseKeyPassword && releaseStorePassword
+
 android {
     namespace 'com.otosasepro'
     compileSdk 35
@@ -7,7 +13,27 @@ android {
         applicationId 'com.otosasepro'
         minSdk 23
         targetSdk 35
-        versionCode 2
-        versionName '1.1'
+        versionCode 3
+        versionName '1.2'
+    }
+
+    signingConfigs {
+        if (hasReleaseSigning) {
+            release {
+                storeFile file(releaseStoreFile)
+                storePassword releaseStorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.release
+            }
+        }
     }
 }
